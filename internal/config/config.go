@@ -34,12 +34,26 @@ type ServerConfig struct {
 	WriteTimeout time.Duration
 }
 
+// AIProvider represents the AI provider to use.
+type AIProvider string
+
+const (
+	// AIProviderOpenAI uses OpenAI-compatible API.
+	AIProviderOpenAI AIProvider = "openai"
+
+	// AIProviderGemini uses Google Gemini API.
+	AIProviderGemini AIProvider = "gemini"
+)
+
 // AIConfig contains AI service settings.
 type AIConfig struct {
+	// Provider specifies which AI provider to use (openai, gemini).
+	Provider AIProvider
+
 	// APIKey is the authentication key for the AI provider.
 	APIKey string
 
-	// BaseURL is the base URL for the AI API (optional, defaults to OpenAI).
+	// BaseURL is the base URL for the AI API (optional, provider-specific defaults).
 	BaseURL string
 
 	// Model is the AI model to use.
@@ -72,6 +86,21 @@ type ProcessingConfig struct {
 
 // Load reads configuration from environment variables.
 func Load() (*Config, error) {
+	// Determine AI provider
+	provider := AIProvider(getEnvOrDefault("AI_PROVIDER", "openai"))
+
+	// Set provider-specific defaults
+	var defaultBaseURL, defaultModel string
+	switch provider {
+	case AIProviderGemini:
+		defaultBaseURL = "https://generativelanguage.googleapis.com"
+		defaultModel = "gemini-2.0-flash"
+	default:
+		provider = AIProviderOpenAI
+		defaultBaseURL = "https://api.openai.com/v1"
+		defaultModel = "gpt-4o-mini"
+	}
+
 	cfg := &Config{
 		Server: ServerConfig{
 			Port:         getEnvOrDefault("PORT", "8080"),
@@ -79,12 +108,13 @@ func Load() (*Config, error) {
 			WriteTimeout: getDurationOrDefault("SERVER_WRITE_TIMEOUT", 30*time.Second),
 		},
 		AI: AIConfig{
+			Provider:   provider,
 			APIKey:     os.Getenv("AI_API_KEY"),
-			BaseURL:    getEnvOrDefault("AI_BASE_URL", "https://api.openai.com/v1"),
-			Model:      getEnvOrDefault("AI_MODEL", "gpt-4o-mini"),
-			Timeout:    getDurationOrDefault("AI_TIMEOUT", 15*time.Second),
-			MaxTokens:  getIntOrDefault("AI_MAX_TOKENS", 512),
-			MaxRetries: getIntOrDefault("AI_MAX_RETRIES", 1),
+			BaseURL:    getEnvOrDefault("AI_BASE_URL", defaultBaseURL),
+			Model:      getEnvOrDefault("AI_MODEL", defaultModel),
+			Timeout:    getDurationOrDefault("AI_TIMEOUT", 30*time.Second),
+			MaxTokens:  getIntOrDefault("AI_MAX_TOKENS", 1024),
+			MaxRetries: getIntOrDefault("AI_MAX_RETRIES", 2),
 			MockMode:   getBoolOrDefault("AI_MOCK_MODE", false),
 		},
 		Processing: ProcessingConfig{

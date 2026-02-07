@@ -25,9 +25,19 @@ go test ./pkg/sanitizer/...
 ## Environment Setup
 
 Copy `.env.example` to `.env` before running. Key settings:
+- `AI_PROVIDER=openai|gemini` selects the AI provider (default: openai)
 - `AI_MOCK_MODE=true` for development without API key
 - `AI_API_KEY` required for production use
 - `ENABLE_RULES=true` enables rule-based pre-classification
+
+### Using Gemini
+
+To use Google Gemini instead of OpenAI:
+```bash
+AI_PROVIDER=gemini
+AI_API_KEY=your_gemini_api_key
+AI_MODEL=gemini-2.0-flash  # or gemini-1.5-pro, gemini-1.5-flash
+```
 
 ## Architecture
 
@@ -53,6 +63,7 @@ HTTP Request -> handler/analyze.go -> service/analyzer.go
 
 - **`internal/service/analyzer.go`**: Core orchestrator. Tries rules first, falls back to AI, handles AI failures with rule-based fallback.
 - **`internal/ai/client.go`**: OpenAI-compatible HTTP client with retry logic and exponential backoff.
+- **`internal/ai/gemini_client.go`**: Google Gemini API client with retry logic and safety settings.
 - **`internal/ai/interfaces.go`**: Defines `Client`, `PromptBuilder`, `ResponseValidator` interfaces for testability.
 - **`internal/rules/`**: Pattern-matching engine with predefined rules for common DevOps errors.
 - **`pkg/sanitizer/`**: Masks secrets (passwords, tokens, keys) and truncates large logs.
@@ -62,6 +73,7 @@ HTTP Request -> handler/analyze.go -> service/analyzer.go
 
 The `ai.Client` interface enables swapping implementations:
 - `OpenAIClient`: Production client for OpenAI-compatible APIs
+- `GeminiClient`: Production client for Google Gemini API
 - `MockClient`: Returns simulated responses for testing (enabled via `AI_MOCK_MODE=true`)
 
 ### Response Schema
