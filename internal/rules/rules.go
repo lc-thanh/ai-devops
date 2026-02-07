@@ -137,7 +137,7 @@ func npmInstallFailure() *Rule {
 		ID:          "npm_install_failure",
 		Name:        "NPM Install Failure",
 		Description: "Detects npm install failures",
-		Keywords:    []string{"npm err!", "npm install", "enoent", "package.json"},
+		Keywords:    []string{"npm err!"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)npm ERR!.*code\s+E[A-Z]+`),
 			regexp.MustCompile(`(?i)npm ERR!.*404.*not found`),
@@ -203,13 +203,15 @@ func connectionTimeout() *Rule {
 	return &Rule{
 		ID:          "connection_timeout",
 		Name:        "Connection Timeout",
-		Description: "Detects connection timeout errors",
-		Keywords:    []string{"connection timed out", "timeout", "etimedout", "connection refused"},
+		Description: "Detects network-level connection timeout errors",
+		Keywords:    []string{"connection timed out", "etimedout", "connection refused", "dial tcp"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)connection\s+timed?\s*out`),
 			regexp.MustCompile(`(?i)ETIMEDOUT`),
 			regexp.MustCompile(`(?i)ECONNREFUSED`),
 			regexp.MustCompile(`(?i)dial tcp.*timeout`),
+			regexp.MustCompile(`(?i)i/o timeout`),
+			regexp.MustCompile(`(?i)connect:.*timeout`),
 		},
 		Confidence: 0.85,
 		Result: &domain.AnalysisResult{
@@ -238,7 +240,7 @@ func sslCertificateError() *Rule {
 		ID:          "ssl_certificate_error",
 		Name:        "SSL Certificate Error",
 		Description: "Detects SSL/TLS certificate issues",
-		Keywords:    []string{"certificate verify failed", "ssl", "certificate expired", "unable to verify"},
+		Keywords:    []string{"certificate verify failed", "certificate expired"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)certificate\s+verify\s+failed`),
 			regexp.MustCompile(`(?i)SSL.*certificate.*expired`),
