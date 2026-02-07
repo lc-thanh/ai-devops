@@ -51,6 +51,7 @@ func main() {
 
 	zapLogger.Info("configuration loaded",
 		zap.String("port", cfg.Server.Port),
+		zap.String("ai_provider", string(cfg.AI.Provider)),
 		zap.String("ai_model", cfg.AI.Model),
 		zap.Bool("mock_mode", cfg.AI.MockMode),
 		zap.Bool("rules_enabled", cfg.Processing.EnableRules),
@@ -71,8 +72,15 @@ func main() {
 		// Create validator
 		validator := ai.NewDefaultValidator()
 
-		// Create OpenAI client
-		aiClient = ai.NewOpenAIClient(&cfg.AI, promptBuilder, validator, zapLogger)
+		// Create AI client based on provider
+		switch cfg.AI.Provider {
+		case config.AIProviderGemini:
+			zapLogger.Info("using Gemini AI provider")
+			aiClient = ai.NewGeminiClient(&cfg.AI, promptBuilder, validator, zapLogger)
+		default:
+			zapLogger.Info("using OpenAI-compatible AI provider")
+			aiClient = ai.NewOpenAIClient(&cfg.AI, promptBuilder, validator, zapLogger)
+		}
 	}
 
 	// Initialize rule engine
