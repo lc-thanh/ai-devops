@@ -308,14 +308,20 @@ func portAlreadyInUse() *Rule {
 		ID:          "port_in_use",
 		Name:        "Port Already In Use",
 		Description: "Detects port binding conflicts",
-		Keywords:    []string{"address already in use", "eaddrinuse", "port is already allocated"},
+		Keywords:    nil,
 		Patterns: []*regexp.Regexp{
-			regexp.MustCompile(`(?i)address already in use`),
-			regexp.MustCompile(`(?i)EADDRINUSE`),
-			regexp.MustCompile(`(?i)bind.*port.*already`),
-			regexp.MustCompile(`(?i)port\s+\d+.*is already allocated`),
+			// EADDRINUSE error code at start of message or after common prefixes
+			regexp.MustCompile(`(?i)^EADDRINUSE\b`),
+			regexp.MustCompile(`(?i)(error|failed|fatal|panic)[:\s].*EADDRINUSE`),
+			// "address already in use" preceded by error indicators
+			regexp.MustCompile(`(?i)(error|failed|fatal|panic|bind|listen)[:\s].*address already in use`),
+			// Go-style error: "listen tcp :8080: bind: address already in use"
+			regexp.MustCompile(`(?i)listen\s+(tcp|udp).*:\s*bind:\s*address already in use`),
+			// Port allocation errors
+			regexp.MustCompile(`(?i)(error|failed)[:\s].*port\s+\d+.*is already allocated`),
+			regexp.MustCompile(`(?i)bind.*port\s+\d+.*already\s+(in\s+use|allocated)`),
 		},
-		Confidence: 0.95,
+		Confidence: 0.85,
 		Result: &domain.AnalysisResult{
 			ErrorType: "port_already_in_use",
 			Severity:  domain.SeverityMedium,

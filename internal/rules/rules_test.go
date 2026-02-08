@@ -116,6 +116,68 @@ func TestRule_Match(t *testing.T) {
 			wantMatch: false,
 			wantRule:  "",
 		},
+		// port_in_use true positives
+		{
+			name:      "port in use - Go listen error",
+			log:       "listen tcp :8080: bind: address already in use",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		{
+			name:      "port in use - Error prefix",
+			log:       "Error: address already in use on port 3000",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		{
+			name:      "port in use - bind failed",
+			log:       "bind failed: address already in use",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		{
+			name:      "port in use - EADDRINUSE at start",
+			log:       "EADDRINUSE: cannot bind to port 8080",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		{
+			name:      "port in use - fatal EADDRINUSE",
+			log:       "fatal: EADDRINUSE when starting server",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		{
+			name:      "port in use - port allocation error",
+			log:       "Error: port 5432 is already allocated",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		// port_in_use false positives (should NOT match)
+		{
+			name:      "no match - hint about address already in use",
+			log:       "[INFO] ServerBoot: Application started. (Hint: If you encounter 'Address already in use' errors, check for zombie processes).",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		{
+			name:      "no match - documentation about address in use",
+			log:       "About address already in use errors: These occur when a port is occupied.",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		{
+			name:      "no match - prevent address in use tip",
+			log:       "Tip: To prevent 'address already in use' errors, use SO_REUSEADDR.",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		{
+			name:      "no match - conditional sentence about error",
+			log:       "If you see 'address already in use', restart the service.",
+			wantMatch: false,
+			wantRule:  "",
+		},
 	}
 
 	for _, tt := range tests {
