@@ -1,8 +1,8 @@
-# 🤖 AI Assistant for DevOps / Backend
+# 🤖 AI-Powered Log Analysis Service
 
 ## Overview
 
-This project implements an **AI-powered assistant for DevOps and Backend engineers**, capable of analyzing CI/CD, Docker, and application logs to identify root causes and propose actionable remediation steps. The assistant combines **rule-based detection** with **Large Language Models (LLMs)** to deliver structured, machine-consumable insights suitable for automation, dashboards, and ChatOps.
+This project implements an **AI-Powered Log Analysis Service for DevOps**, capable of analyzing CI/CD, Docker, and application logs to identify root causes and propose actionable remediation steps. The assistant combines **rule-based detection** with **Large Language Models (LLMs)** to deliver structured, machine-consumable insights suitable for automation, dashboards, and ChatOps.
 
 ---
 
