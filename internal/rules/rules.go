@@ -76,7 +76,7 @@ func dockerBuildPermissionDenied() *Rule {
 		ID:          "docker_build_permission",
 		Name:        "Docker Build Permission Denied",
 		Description: "Detects Docker build failures due to permission issues",
-		Keywords:    []string{"docker build", "permission denied"},
+		Keywords:    nil,
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)docker.*build.*permission\s+denied`),
 			regexp.MustCompile(`(?i)error.*docker.*EACCES`),
@@ -204,7 +204,7 @@ func connectionTimeout() *Rule {
 		ID:          "connection_timeout",
 		Name:        "Connection Timeout",
 		Description: "Detects network-level connection timeout errors",
-		Keywords:    []string{"connection timed out", "etimedout", "connection refused", "dial tcp"},
+		Keywords:    []string{"connection timed out", "etimedout"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)connection\s+timed?\s*out`),
 			regexp.MustCompile(`(?i)ETIMEDOUT`),
@@ -212,6 +212,7 @@ func connectionTimeout() *Rule {
 			regexp.MustCompile(`(?i)dial tcp.*timeout`),
 			regexp.MustCompile(`(?i)i/o timeout`),
 			regexp.MustCompile(`(?i)connect:.*timeout`),
+			regexp.MustCompile(`(?i)connect:\s+connection refused`),
 		},
 		Confidence: 0.85,
 		Result: &domain.AnalysisResult{
@@ -347,7 +348,7 @@ func authenticationFailure() *Rule {
 		ID:          "authentication_failure",
 		Name:        "Authentication Failure",
 		Description: "Detects authentication and authorization failures",
-		Keywords:    []string{"authentication failed", "unauthorized", "access denied", "invalid credentials"},
+		Keywords:    []string{"authentication failed", "invalid credentials"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)authentication\s+failed`),
 			regexp.MustCompile(`(?i)401\s+unauthorized`),
@@ -382,7 +383,7 @@ func kubernetesImagePullBackoff() *Rule {
 		ID:          "k8s_image_pull_backoff",
 		Name:        "Kubernetes Image Pull BackOff",
 		Description: "Detects Kubernetes image pull failures",
-		Keywords:    []string{"imagepullbackoff", "errimagepull", "failed to pull image"},
+		Keywords:    []string{"imagepullbackoff", "errimagepull"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)ImagePullBackOff`),
 			regexp.MustCompile(`(?i)ErrImagePull`),
