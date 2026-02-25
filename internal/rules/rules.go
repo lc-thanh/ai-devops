@@ -78,8 +78,8 @@ func dockerBuildPermissionDenied() *Rule {
 		Description: "Detects Docker build failures due to permission issues",
 		Keywords:    nil,
 		Patterns: []*regexp.Regexp{
-			regexp.MustCompile(`(?i)docker.*build.*permission\s+denied`),
-			regexp.MustCompile(`(?i)error.*docker.*EACCES`),
+			regexp.MustCompile(`(?is)docker.*build.*permission\s+denied`),
+			regexp.MustCompile(`(?is)error.*docker.*EACCES`),
 		},
 		Confidence: 0.9,
 		Result: &domain.AnalysisResult{
@@ -110,7 +110,7 @@ func dockerDaemonNotRunning() *Rule {
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)cannot connect to the docker daemon`),
 			regexp.MustCompile(`(?i)is the docker daemon running`),
-			regexp.MustCompile(`(?i)docker\.sock.*no such file`),
+			regexp.MustCompile(`(?is)docker\.sock.*no such file`),
 		},
 		Confidence: 0.95,
 		Result: &domain.AnalysisResult{
@@ -139,9 +139,9 @@ func npmInstallFailure() *Rule {
 		Description: "Detects npm install failures",
 		Keywords:    []string{"npm err!"},
 		Patterns: []*regexp.Regexp{
-			regexp.MustCompile(`(?i)npm ERR!.*code\s+E[A-Z]+`),
-			regexp.MustCompile(`(?i)npm ERR!.*404.*not found`),
-			regexp.MustCompile(`(?i)npm ERR!.*peer dep`),
+			regexp.MustCompile(`(?is)npm ERR!.*code\s+E[A-Z]+`),
+			regexp.MustCompile(`(?is)npm ERR!.*404.*not found`),
+			regexp.MustCompile(`(?is)npm ERR!.*peer dep`),
 		},
 		Confidence: 0.85,
 		Result: &domain.AnalysisResult{
@@ -209,9 +209,9 @@ func connectionTimeout() *Rule {
 			regexp.MustCompile(`(?i)connection\s+timed?\s*out`),
 			regexp.MustCompile(`(?i)ETIMEDOUT`),
 			regexp.MustCompile(`(?i)ECONNREFUSED`),
-			regexp.MustCompile(`(?i)dial tcp.*timeout`),
+			regexp.MustCompile(`(?is)dial tcp.*timeout`),
 			regexp.MustCompile(`(?i)i/o timeout`),
-			regexp.MustCompile(`(?i)connect:.*timeout`),
+			regexp.MustCompile(`(?is)connect:.*timeout`),
 			regexp.MustCompile(`(?i)connect:\s+connection refused`),
 		},
 		Confidence: 0.85,
@@ -244,10 +244,10 @@ func sslCertificateError() *Rule {
 		Keywords:    []string{"certificate verify failed", "certificate expired"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)certificate\s+verify\s+failed`),
-			regexp.MustCompile(`(?i)SSL.*certificate.*expired`),
+			regexp.MustCompile(`(?is)SSL.*certificate.*expired`),
 			regexp.MustCompile(`(?i)unable to verify the first certificate`),
 			regexp.MustCompile(`(?i)self.signed certificate`),
-			regexp.MustCompile(`(?i)x509.*certificate`),
+			regexp.MustCompile(`(?is)x509.*certificate`),
 		},
 		Confidence: 0.9,
 		Result: &domain.AnalysisResult{
@@ -313,14 +313,14 @@ func portAlreadyInUse() *Rule {
 		Patterns: []*regexp.Regexp{
 			// EADDRINUSE error code at start of message or after common prefixes
 			regexp.MustCompile(`(?i)^EADDRINUSE\b`),
-			regexp.MustCompile(`(?i)(error|failed|fatal|panic)[:\s].*EADDRINUSE`),
+			regexp.MustCompile(`(?is)(error|failed|fatal|panic)[:\s].*EADDRINUSE`),
 			// "address already in use" preceded by error indicators
-			regexp.MustCompile(`(?i)(error|failed|fatal|panic|bind|listen)[:\s].*address already in use`),
+			regexp.MustCompile(`(?is)(error|failed|fatal|panic|bind|listen)[:\s].*address already in use`),
 			// Go-style error: "listen tcp :8080: bind: address already in use"
-			regexp.MustCompile(`(?i)listen\s+(tcp|udp).*:\s*bind:\s*address already in use`),
+			regexp.MustCompile(`(?is)listen\s+(tcp|udp).*:\s*bind:\s*address already in use`),
 			// Port allocation errors
-			regexp.MustCompile(`(?i)(error|failed)[:\s].*port\s+\d+.*is already allocated`),
-			regexp.MustCompile(`(?i)bind.*port\s+\d+.*already\s+(in\s+use|allocated)`),
+			regexp.MustCompile(`(?is)(error|failed)[:\s].*port\s+\d+.*is already allocated`),
+			regexp.MustCompile(`(?is)bind.*port\s+\d+.*already\s+(in\s+use|allocated)`),
 		},
 		Confidence: 0.85,
 		Result: &domain.AnalysisResult{
@@ -388,7 +388,7 @@ func kubernetesImagePullBackoff() *Rule {
 			regexp.MustCompile(`(?i)ImagePullBackOff`),
 			regexp.MustCompile(`(?i)ErrImagePull`),
 			regexp.MustCompile(`(?i)failed to pull image`),
-			regexp.MustCompile(`(?i)rpc error.*pulling image`),
+			regexp.MustCompile(`(?is)rpc error.*pulling image`),
 		},
 		Confidence: 0.95,
 		Result: &domain.AnalysisResult{
