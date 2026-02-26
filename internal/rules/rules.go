@@ -76,10 +76,10 @@ func dockerBuildPermissionDenied() *Rule {
 		ID:          "docker_build_permission",
 		Name:        "Docker Build Permission Denied",
 		Description: "Detects Docker build failures due to permission issues",
-		Keywords:    []string{"docker build", "permission denied"},
+		Keywords:    nil,
 		Patterns: []*regexp.Regexp{
-			regexp.MustCompile(`(?i)docker.*build.*permission\s+denied`),
-			regexp.MustCompile(`(?i)error.*docker.*EACCES`),
+			regexp.MustCompile(`(?is)docker.*build.*permission\s+denied`),
+			regexp.MustCompile(`(?is)error.*docker.*EACCES`),
 		},
 		Confidence: 0.9,
 		Result: &domain.AnalysisResult{
@@ -110,7 +110,7 @@ func dockerDaemonNotRunning() *Rule {
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)cannot connect to the docker daemon`),
 			regexp.MustCompile(`(?i)is the docker daemon running`),
-			regexp.MustCompile(`(?i)docker\.sock.*no such file`),
+			regexp.MustCompile(`(?is)docker\.sock.*no such file`),
 		},
 		Confidence: 0.95,
 		Result: &domain.AnalysisResult{
@@ -137,11 +137,11 @@ func npmInstallFailure() *Rule {
 		ID:          "npm_install_failure",
 		Name:        "NPM Install Failure",
 		Description: "Detects npm install failures",
-		Keywords:    []string{"npm err!", "npm install", "enoent", "package.json"},
+		Keywords:    []string{"npm err!"},
 		Patterns: []*regexp.Regexp{
-			regexp.MustCompile(`(?i)npm ERR!.*code\s+E[A-Z]+`),
-			regexp.MustCompile(`(?i)npm ERR!.*404.*not found`),
-			regexp.MustCompile(`(?i)npm ERR!.*peer dep`),
+			regexp.MustCompile(`(?is)npm ERR!.*code\s+E[A-Z]+`),
+			regexp.MustCompile(`(?is)npm ERR!.*404.*not found`),
+			regexp.MustCompile(`(?is)npm ERR!.*peer dep`),
 		},
 		Confidence: 0.85,
 		Result: &domain.AnalysisResult{
@@ -203,13 +203,16 @@ func connectionTimeout() *Rule {
 	return &Rule{
 		ID:          "connection_timeout",
 		Name:        "Connection Timeout",
-		Description: "Detects connection timeout errors",
-		Keywords:    []string{"connection timed out", "timeout", "etimedout", "connection refused"},
+		Description: "Detects network-level connection timeout errors",
+		Keywords:    []string{"connection timed out", "etimedout"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)connection\s+timed?\s*out`),
 			regexp.MustCompile(`(?i)ETIMEDOUT`),
 			regexp.MustCompile(`(?i)ECONNREFUSED`),
-			regexp.MustCompile(`(?i)dial tcp.*timeout`),
+			regexp.MustCompile(`(?is)dial tcp.*timeout`),
+			regexp.MustCompile(`(?i)i/o timeout`),
+			regexp.MustCompile(`(?is)connect:.*timeout`),
+			regexp.MustCompile(`(?i)connect:\s+connection refused`),
 		},
 		Confidence: 0.85,
 		Result: &domain.AnalysisResult{
@@ -238,13 +241,13 @@ func sslCertificateError() *Rule {
 		ID:          "ssl_certificate_error",
 		Name:        "SSL Certificate Error",
 		Description: "Detects SSL/TLS certificate issues",
-		Keywords:    []string{"certificate verify failed", "ssl", "certificate expired", "unable to verify"},
+		Keywords:    []string{"certificate verify failed", "certificate expired"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)certificate\s+verify\s+failed`),
-			regexp.MustCompile(`(?i)SSL.*certificate.*expired`),
+			regexp.MustCompile(`(?is)SSL.*certificate.*expired`),
 			regexp.MustCompile(`(?i)unable to verify the first certificate`),
 			regexp.MustCompile(`(?i)self.signed certificate`),
-			regexp.MustCompile(`(?i)x509.*certificate`),
+			regexp.MustCompile(`(?is)x509.*certificate`),
 		},
 		Confidence: 0.9,
 		Result: &domain.AnalysisResult{
@@ -306,14 +309,20 @@ func portAlreadyInUse() *Rule {
 		ID:          "port_in_use",
 		Name:        "Port Already In Use",
 		Description: "Detects port binding conflicts",
-		Keywords:    []string{"address already in use", "eaddrinuse", "port is already allocated"},
+		Keywords:    nil,
 		Patterns: []*regexp.Regexp{
-			regexp.MustCompile(`(?i)address already in use`),
-			regexp.MustCompile(`(?i)EADDRINUSE`),
-			regexp.MustCompile(`(?i)bind.*port.*already`),
-			regexp.MustCompile(`(?i)port\s+\d+.*is already allocated`),
+			// EADDRINUSE error code at start of message or after common prefixes
+			regexp.MustCompile(`(?i)^EADDRINUSE\b`),
+			regexp.MustCompile(`(?is)(error|failed|fatal|panic)[:\s].*EADDRINUSE`),
+			// "address already in use" preceded by error indicators
+			regexp.MustCompile(`(?is)(error|failed|fatal|panic|bind|listen)[:\s].*address already in use`),
+			// Go-style error: "listen tcp :8080: bind: address already in use"
+			regexp.MustCompile(`(?is)listen\s+(tcp|udp).*:\s*bind:\s*address already in use`),
+			// Port allocation errors
+			regexp.MustCompile(`(?is)(error|failed)[:\s].*port\s+\d+.*is already allocated`),
+			regexp.MustCompile(`(?is)bind.*port\s+\d+.*already\s+(in\s+use|allocated)`),
 		},
-		Confidence: 0.95,
+		Confidence: 0.85,
 		Result: &domain.AnalysisResult{
 			ErrorType: "port_already_in_use",
 			Severity:  domain.SeverityMedium,
@@ -339,7 +348,7 @@ func authenticationFailure() *Rule {
 		ID:          "authentication_failure",
 		Name:        "Authentication Failure",
 		Description: "Detects authentication and authorization failures",
-		Keywords:    []string{"authentication failed", "unauthorized", "access denied", "invalid credentials"},
+		Keywords:    []string{"authentication failed", "invalid credentials"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)authentication\s+failed`),
 			regexp.MustCompile(`(?i)401\s+unauthorized`),
@@ -374,12 +383,12 @@ func kubernetesImagePullBackoff() *Rule {
 		ID:          "k8s_image_pull_backoff",
 		Name:        "Kubernetes Image Pull BackOff",
 		Description: "Detects Kubernetes image pull failures",
-		Keywords:    []string{"imagepullbackoff", "errimagepull", "failed to pull image"},
+		Keywords:    []string{"imagepullbackoff", "errimagepull"},
 		Patterns: []*regexp.Regexp{
 			regexp.MustCompile(`(?i)ImagePullBackOff`),
 			regexp.MustCompile(`(?i)ErrImagePull`),
 			regexp.MustCompile(`(?i)failed to pull image`),
-			regexp.MustCompile(`(?i)rpc error.*pulling image`),
+			regexp.MustCompile(`(?is)rpc error.*pulling image`),
 		},
 		Confidence: 0.95,
 		Result: &domain.AnalysisResult{

@@ -46,9 +46,135 @@ func TestRule_Match(t *testing.T) {
 			wantMatch: true,
 			wantRule:  "k8s_image_pull_backoff",
 		},
+		// connection_timeout true positives
+		{
+			name:      "connection timeout - dial tcp i/o timeout",
+			log:       "dial tcp 10.0.0.1:5432: i/o timeout",
+			wantMatch: true,
+			wantRule:  "connection_timeout",
+		},
+		{
+			name:      "connection timeout - ETIMEDOUT",
+			log:       "ETIMEDOUT: connection timed out",
+			wantMatch: true,
+			wantRule:  "connection_timeout",
+		},
+		{
+			name:      "connection timeout - connection refused",
+			log:       "connect: connection refused",
+			wantMatch: true,
+			wantRule:  "connection_timeout",
+		},
+		// connection_timeout true negatives (should NOT match connection_timeout)
+		{
+			name:      "no match - timeout budget exceeded",
+			log:       "timeout budget exceeded for downstream call",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		{
+			name:      "no match - latency threshold exceeded",
+			log:       "latency threshold exceeded: 500ms > 200ms",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		{
+			name:      "no match - context deadline exceeded",
+			log:       "context deadline exceeded",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		{
+			name:      "no match - request timeout",
+			log:       "request timeout after 30s",
+			wantMatch: false,
+			wantRule:  "",
+		},
 		{
 			name:      "no match",
 			log:       "INFO: Application started successfully",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		// npm_install_failure false positives
+		{
+			name:      "no match - package.json validation error",
+			log:       "[ERROR] Deployer: Validation failed. The file 'package.json' is missing the 'version' field.",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		{
+			name:      "no match - generic enoent error",
+			log:       "ENOENT: no such file or directory, open '/etc/config.yaml'",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		// ssl_certificate_error false positives
+		{
+			name:      "no match - ssl success log",
+			log:       "INFO: SSL handshake completed successfully on port 443",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		// port_in_use true positives
+		{
+			name:      "port in use - Go listen error",
+			log:       "listen tcp :8080: bind: address already in use",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		{
+			name:      "port in use - Error prefix",
+			log:       "Error: address already in use on port 3000",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		{
+			name:      "port in use - bind failed",
+			log:       "bind failed: address already in use",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		{
+			name:      "port in use - EADDRINUSE at start",
+			log:       "EADDRINUSE: cannot bind to port 8080",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		{
+			name:      "port in use - fatal EADDRINUSE",
+			log:       "fatal: EADDRINUSE when starting server",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		{
+			name:      "port in use - port allocation error",
+			log:       "Error: port 5432 is already allocated",
+			wantMatch: true,
+			wantRule:  "port_in_use",
+		},
+		// port_in_use false positives (should NOT match)
+		{
+			name:      "no match - hint about address already in use",
+			log:       "[INFO] ServerBoot: Application started. (Hint: If you encounter 'Address already in use' errors, check for zombie processes).",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		{
+			name:      "no match - documentation about address in use",
+			log:       "About address already in use errors: These occur when a port is occupied.",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		{
+			name:      "no match - prevent address in use tip",
+			log:       "Tip: To prevent 'address already in use' errors, use SO_REUSEADDR.",
+			wantMatch: false,
+			wantRule:  "",
+		},
+		{
+			name:      "no match - conditional sentence about error",
+			log:       "If you see 'address already in use', restart the service.",
 			wantMatch: false,
 			wantRule:  "",
 		},
