@@ -161,10 +161,11 @@ func (c *GeminiClient) Analyze(ctx context.Context, log string) (*domain.Analysi
 			},
 		},
 		GenerationConfig: geminiGenerationConfig{
-			Temperature:     0.1, // Low temperature for deterministic output
+			// Temperature=0 enables greedy decoding (pure extraction mode).
+			// TopP and TopK are omitted: with greedy decoding they have no effect,
+			// and sending them would imply sampling is occurring when it is not.
+			Temperature:     0.0,
 			MaxOutputTokens: maxTokens,
-			TopP:            0.95,
-			TopK:            40,
 		},
 		SafetySettings: []geminiSafetySetting{
 			{Category: "HARM_CATEGORY_HARASSMENT", Threshold: "BLOCK_NONE"},
